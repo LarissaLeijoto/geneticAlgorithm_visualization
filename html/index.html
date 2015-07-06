@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<META http-equiv="Content-Type" content="text/html; charset=utf-8">
+<html>
+<head>
+  <title>Scatterplot</title>
+  <script type="text/javascript" src="http://d3js.org/d3.v3.js"></script>
+  <!--script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script-->
+</head>
+<body>
+  <style>
+    body { font: 12px Arial;}
+
+    div.tooltip {   
+      position: absolute;           
+      text-align: left;           
+      width: 60px;                  
+      height: 28px;                 
+      padding: 2px;             
+      font: 12px sans-serif;        
+      background: #969696;   
+      border: 2px;      
+      border-radius: 8px;           
+      pointer-events: none;         
+    }
+  </style>
+
+<div id="chart">
+
+<script type="text/javascript">
+  // set the stage
+  
+  var width = 960;
+  var height = 380;
+  var legendSpacing = 4;
+  var legendElementWidth = 50;
+
+  var margin = {top: 20, right: 40, bottom: 50, left: 50},
+    w = width - margin.left - margin.right,
+    h = height - margin.top - margin.bottom;
+  colors = ['#ADD8E6','#1E90FF','#0000FF','#191970'];
+  
+  d3.select("body").append("svg")
+
+  var i=0;
+  var svg=null;
+  function next() {
+    var name = 'data/gen_' + i + '.json';
+    // Read the json data:
+    d3.json(name, function(error, data) {
+      if(svg) {
+        d3.selectAll('circle').filter(function(d, i) { 
+          return d[3] == 0;
+        }).remove()
+
+        d3.selectAll('circle').filter(function(d, i) {
+          return d[3]--;
+        }).style("fill", function(d) {
+            return colors[d[3]]
+        ;})
+      }
+
+      svg = draw(data)
+      console.log('rodou ', i, 'data: ', name);
+
+
+      if(i < 1845) setTimeout(next, 80);
+    });
+    i+=5
+  }
+  next();
+
+  function draw(data) {
+
+    for (var j = 0; j < data.length; j++)
+      data[j].push(3);
+
+    var div = d3.select("body").append("div")   
+      .attr("class", "tooltip")               
+      .style("opacity", 0);
+
+    var xScale = d3.scale.linear()
+      //.domain([0, d3.max(data, function(d) { return d[0]; })])
+      .domain([0, 1])
+      .range([0, width]);
+  
+    var yScale = d3.scale.linear()
+      //.domain([0, d3.max(data, function(d) { return d[1]; })])
+      .domain([0, 1])
+      .range([height, 0]);
+  
+    var colorScale = d3.scale.quantile()
+      //.domain([d3.min(data, function (d) { return d[2]; }), d3.mean(data, function (d) { return d[2]; }), d3.max(data, function (d) { return d[2]; })])
+      .domain([0, 1, 2, 3])
+      .range(colors);
+  
+    //Create SVG element
+    var svg = d3.select("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+      .style("border", "2px solid black")
+      .append("g")
+      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+  
+    svg.selectAll("circle")
+     .data(data)
+     .enter()
+     .append("circle")
+     .attr("cx", function(d) {
+       //return xScale(d[0]); // X calculado com as matrizes
+       return xScale(d[0]);
+     })
+     .attr("cy", function(d) {
+       return yScale(d[1]); // Y calculado com as matrizes
+     })
+     .attr("r", function(d) { return 10*d[2]; })
+    .style("fill", colors[3]) // mudar o fitness aqui 
+    .on("mouseover", function(d) {      
+       div.transition()
+       .duration(200)
+       .style("opacity", .9);
+  
+       div.html(d)
+       .style("left", d3.select(this).attr("cx") + "px")
+       .style("top", d3.select(this).attr("cy") -10  + "px");
+    })
+      .on("mouseout", function(d) {       
+      div.transition()        
+      .duration(500)      
+      .style("opacity", 0);   
+    });
+  
+   var legend = svg.selectAll(".legend")
+     .data([1].concat(colorScale.quantiles()), function(d) { return d; })
+     .enter().append("g")
+     .attr("class", "legend");
+  
+    legend.append("rect")
+      .attr("x", function(d, i) { return legendElementWidth * i; })
+      .attr("y", height+20)
+      .attr("width", 45)// largura do retangulo
+      .attr("height", 20)//altura do retangulo
+      .style("fill", function(d) { return colorScale(d); });
+  
+    legend.append("text")
+      .attr("class", "mono")
+      .text(function(d) { return Math.round(d); })
+      .attr("x", function(d, i) { return legendElementWidth * i; })
+      .attr("y", height+50 );
+
+    return svg;
+ }
+
+</script>
+</div>
+</body>
+</html>

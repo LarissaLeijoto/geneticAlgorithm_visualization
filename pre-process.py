@@ -46,8 +46,15 @@ def normalize(solution):
 
   return
 
+def printOutput(solution):
+  for i in xrange(len(solution)):
+    outFile = open(sys.argv[6] + "/gen_" + str(i) + ".json", "w")
+    print >> outFile, solution[i]
+
+  return
+
 if sys.argv[1] == "-h" or sys.argv[1] == "--help":
-  print "Usage: ./pre-process -p N -f PATH"
+  print "Usage: ./pre-process -p N -f PATH -o DIR"
 
 numProt = int(sys.argv[2]) # Number of preteins in an individual.
 file = open(sys.argv[4])
@@ -139,5 +146,4 @@ if not broke:
   solution.append(generation)
 
 normalize(solution)
-
-print solution
+printOutput(solution)
