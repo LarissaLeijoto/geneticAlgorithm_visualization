@@ -96,7 +96,7 @@ while True:
     file.readline()
 
   # Skip offset.
-  line = file.readline()
+  #line = file.readline()
 
   # Break at the end of file.
   if not line:
@@ -107,6 +107,10 @@ while True:
   # Extract each protein from this individual.
   for i in range(numProt):
     line = file.readline()
+
+    if line == '\n':
+      line = file.readline()
+
     line = line.strip()
 
     protein = line.split(" ")

@@ -7,40 +7,59 @@
   <!--script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script-->
 </head>
 <body>
-  <style>
-    body { font: 12px Arial;}
+<style>
+  body { font: 12px Arial;}
 
-    div.tooltip {   
-      position: absolute;           
-      text-align: left;           
-      width: 60px;                  
-      height: 28px;                 
-      padding: 2px;             
-      font: 12px sans-serif;        
-      background: #969696;   
-      border: 2px;      
-      border-radius: 8px;           
-      pointer-events: none;         
-    }
-  </style>
+  div.tooltip {   
+    position: absolute;           
+    text-align: left;           
+    width: 60px;                  
+    height: 28px;                 
+    padding: 2px;             
+    font: 12px sans-serif;        
+    background: #969696;   
+    border: 2px;      
+    border-radius: 8px;           
+    pointer-events: none;         
+  }
+</style>
 
-<div id="chart">
+
+<table>
+<tr>
+  <td><svg></svg></td>
+  <td style="vertical-align: top;">
+    <table>
+    <tr>
+      <td><div id="color_scale"></div></td>
+      <td><div id="color_caption"></div></td>
+      <td><div>
+        <div style="height:30px; width:30px">(N-3)</div>
+        <div style="height:30px; width:30px">(N-2)</div>
+        <div style="height:30px; width:30px">(N-1)</div>
+        <div style="height:30px; width:30px">(N)</div>
+      </div></td>
+    </tr>
+    </table>
+  </td>
+</tr>
+</table>
 
 <script type="text/javascript">
   // set the stage
   
   var width = 960;
-  var height = 380;
+  var height = 480;
   var legendSpacing = 4;
   var legendElementWidth = 50;
 
   var margin = {top: 20, right: 40, bottom: 50, left: 50},
     w = width - margin.left - margin.right,
     h = height - margin.top - margin.bottom;
-  colors = ['#ADD8E6','#1E90FF','#0000FF','#191970'];
-  
-  d3.select("body").append("svg")
+    colors = ['#ADD8E6','#1E90FF','#0000FF','#191970'];
 
+  drawMenu();
+  
   var i=0;
   var svg=null;
   function next() {
@@ -60,6 +79,7 @@
       }
 
       svg = draw(data)
+      redrawColorCaption(i)
       console.log('rodou ', i, 'data: ', name);
 
 
@@ -129,27 +149,31 @@
       .style("opacity", 0);   
     });
   
-   var legend = svg.selectAll(".legend")
-     .data([1].concat(colorScale.quantiles()), function(d) { return d; })
-     .enter().append("g")
-     .attr("class", "legend");
-  
-    legend.append("rect")
-      .attr("x", function(d, i) { return legendElementWidth * i; })
-      .attr("y", height+20)
-      .attr("width", 45)// largura do retangulo
-      .attr("height", 20)//altura do retangulo
-      .style("fill", function(d) { return colorScale(d); });
-  
-    legend.append("text")
-      .attr("class", "mono")
-      .text(function(d) { return Math.round(d); })
-      .attr("x", function(d, i) { return legendElementWidth * i; })
-      .attr("y", height+50 );
-
     return svg;
  }
 
+  function drawMenu() {
+    d3.select("#color_scale").append("div").selectAll("div")
+      .data(colors)
+      .enter()
+      .append("div")
+      .style("background", function(d){return d;})
+      .style("height", "30px")
+      .style("width", "30px")
+
+    d3.select("#color_caption").append("div").selectAll("div")
+      .data(colors)
+      .enter()
+      .append("div")
+      .attr("id", function(d, i){return ("color_tbox_"+i);})
+      .style("height", "30px")
+      .style("width", "30px")
+  }
+
+  function redrawColorCaption(idx) {
+      for (var j = 0; j < 4; j++)
+        document.getElementById("color_tbox_" + j).innerHTML = ""+(idx-3+j)
+  }
 </script>
 </div>
 </body>
