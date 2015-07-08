@@ -24,23 +24,44 @@
   }
 </style>
 
+<script>
+  function changeStep() {
+    console.log("cnage");
+    _step = +document.getElementById('step').value;
+    console.log('step: ', _step);
+  }
+</script>
 
 <table>
 <tr>
   <td><svg></svg></td>
-  <td style="vertical-align: top;">
-    <table>
+  <td style="vertical-align: top; padding-left: 20px;">
+    <table style="padding: 20px 20px 20px 0px;">
     <tr>
-      <td><div id="color_scale"></div></td>
-      <td><div id="color_caption"></div></td>
+      <td><div id="color_scale"> <b>Color</b> </div></td>
+      <td><div id="color_caption"> <b>Gen.</b> </div></td>
       <td><div>
-        <div style="height:30px; width:30px">(N-3)</div>
-        <div style="height:30px; width:30px">(N-2)</div>
-        <div style="height:30px; width:30px">(N-1)</div>
-        <div style="height:30px; width:30px">(N)</div>
+        <b> Index </b>
+        <div style="line-height:30px; width:30px">(N-3)</div>
+        <div style="line-height:30px; width:30px">(N-2)</div>
+        <div style="line-height:30px; width:30px">(N-1)</div>
+        <div style="line-height:30px; width:30px">(N)</div>
       </div></td>
     </tr>
     </table>
+    <button type="button" id="play" class="ctrlbutton" onclick="if (!pause){i=0} else {pause=false; next();}">
+      <b>Play</b></button> 
+    <button type="button" id="pause" class="ctrlbutton" onclick="pause=true">
+      <b>Pause</b></button> 
+    <button type="button" id="reset" class="ctrlbutton" onclick="i=0; redrawColorCaption(i); if(pause) clean();">
+      <b>Reset</b></button> 
+    <table style="padding-top: 20px;"> <tr>
+        <td><div><b>Generation step:</b></div>
+          <div><input type="number" id="step" min="1" step="1" value="5"
+                                                               onchange="changeStep()" style="width:90px"/></div>
+      </td>
+    </tr> </table>
+
   </td>
 </tr>
 </table>
@@ -61,33 +82,49 @@
   drawMenu();
   
   var i=0;
+  var pause=false;
+
+  var _step=5;
+
   var svg=null;
   function next() {
     var name = 'data/gen_' + i + '.json';
-    // Read the json data:
-    d3.json(name, function(error, data) {
-      if(svg) {
-        d3.selectAll('circle').filter(function(d, i) { 
-          return d[3] == 0;
-        }).remove()
+    try {
+      // Read the json data:
+      d3.json(name, function(error, data) {
+        if(pause) return;
+        if(svg) {
+          d3.selectAll('circle').filter(function(d, i) { 
+            return d[3] == 0;
+          }).remove()
 
-        d3.selectAll('circle').filter(function(d, i) {
-          return d[3]--;
-        }).style("fill", function(d) {
-            return colors[d[3]]
-        ;})
-      }
+          d3.selectAll('circle').filter(function(d, i) {
+            return d[3]--;
+          }).style("fill", function(d) {
+              return colors[d[3]]
+          ;})
+        }
 
-      svg = draw(data)
-      redrawColorCaption(i)
-      console.log('rodou ', i, 'data: ', name);
+        svg = draw(data)
 
+        // Update the number of the
+        // generations diplayed on the legend.
+        redrawColorCaption(i)
 
-      if(i < 1845) setTimeout(next, 80);
-    });
-    i+=5
+        setTimeout(next, 80);
+      });
+      i += _step
+    } catch(e) {
+      i=0;
+      pause=true;
+    }
   }
   next();
+
+
+  function clean() {
+    d3.selectAll('circle').remove()
+  }
 
   function draw(data) {
 
@@ -166,13 +203,15 @@
       .enter()
       .append("div")
       .attr("id", function(d, i){return ("color_tbox_"+i);})
-      .style("height", "30px")
+      .style("line-height", "30px")
       .style("width", "30px")
   }
 
   function redrawColorCaption(idx) {
-      for (var j = 0; j < 4; j++)
-        document.getElementById("color_tbox_" + j).innerHTML = ""+(idx-3+j)
+    for (var j = 0; j < 4; j++) {
+      var num = idx-3+j;
+      document.getElementById("color_tbox_" + j).innerHTML = ""+(num>=0?num:"-")
+    }
   }
 </script>
 </div>
