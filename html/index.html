@@ -46,12 +46,11 @@
         <div style="line-height:30px; width:30px">(N-2)</div>
         <div style="line-height:30px; width:30px">(N-1)</div>
         <div style="line-height:30px; width:30px">(N)</div>
+        <div style="line-height:30px; width:30px">(N)</div>
       </div></td>
     </tr>
     </table>
-    <button type="button" id="play" class="ctrlbutton" onclick="if (!pause){i=0} else {pause=false; next();}">
-      <b>Play</b></button> 
-    <button type="button" id="pause" class="ctrlbutton" onclick="pause=true">
+    <button type="button" id="pause" class="ctrlbutton" onclick="togglePlay()">
       <b>Pause</b></button> 
     <button type="button" id="reset" class="ctrlbutton" onclick="i=0; redrawColorCaption(i); if(pause) clean();">
       <b>Reset</b></button> 
@@ -61,8 +60,25 @@
                                                                onchange="changeStep()" style="width:90px"/></div>
       </td>
     </tr> </table>
-
+    <table>
+    <tr>
+    <td style="padding-top: 20px;">
+    <b>Experiments:</b>
+    <select multiple id="experimento" name="Experiments" size="5"
+      style="height: 120px; width: 160px; padding: 10px 10px 10px 10px;">
+      <option value="1">Experiment 1</option>
+      <option value="2">Experiment 2</option>
+      <option value="3">Experiment 3</option>
+      <option value="4">Experiment 4</option>
+      <option value="5">Experiment 5</option>
+    </select>
+    <button type="button" id="change" class="ctrlbutton" onclick="updateData(); i=0; redrawColorCaption(i); if(pause) clean();">
+      <b>Change Experiment</b></button> 
+    </td>
+    </tr>
+    </table>
   </td>
+
 </tr>
 </table>
 
@@ -77,18 +93,19 @@
   var margin = {top: 20, right: 40, bottom: 50, left: 50},
     w = width - margin.left - margin.right,
     h = height - margin.top - margin.bottom;
-    colors = ['#ADD8E6','#1E90FF','#0000FF','#191970'];
+    colors = ['#ADD8E6','#1E90FF','#0000FF','#191970', '#EE0000'];
 
   drawMenu();
   
   var i=0;
   var pause=false;
+  var dataDir = 'data1'
 
   var _step=5;
 
   var svg=null;
   function next() {
-    var name = 'data/gen_' + i + '.json';
+    var name = dataDir + '/gen_' + i + '.json';
     try {
       // Read the json data:
       d3.json(name, function(error, data) {
@@ -121,12 +138,30 @@
   }
   next();
 
+  function togglePlay() {
+    if(pause) {
+      pause=false;
+      next();
+      document.getElementById("pause").innerHTML = "<b>Pause</b>"
+    } else {
+      pause=true;
+      document.getElementById("pause").innerHTML = "<b>Play</b>"
+    }
+  }
 
   function clean() {
     d3.selectAll('circle').remove()
   }
 
+  function updateData() {
+    var val = document.getElementById("experimento").value;
+    dataDir = 'data' + val;
+  }
+
   function draw(data) {
+
+    data.sort(function(a, b) { return a[2]-b[2] })
+    max = data[data.length-1][2]
 
     for (var j = 0; j < data.length; j++)
       data[j].push(3);
@@ -136,17 +171,14 @@
       .style("opacity", 0);
 
     var xScale = d3.scale.linear()
-      //.domain([0, d3.max(data, function(d) { return d[0]; })])
       .domain([0, 1])
       .range([0, width]);
   
     var yScale = d3.scale.linear()
-      //.domain([0, d3.max(data, function(d) { return d[1]; })])
       .domain([0, 1])
       .range([height, 0]);
   
     var colorScale = d3.scale.quantile()
-      //.domain([d3.min(data, function (d) { return d[2]; }), d3.mean(data, function (d) { return d[2]; }), d3.max(data, function (d) { return d[2]; })])
       .domain([0, 1, 2, 3])
       .range(colors);
   
@@ -158,33 +190,42 @@
       .append("g")
       .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
   
+    ///*
     svg.selectAll("circle")
-     .data(data)
-     .enter()
-     .append("circle")
-     .attr("cx", function(d) {
-       //return xScale(d[0]); // X calculado com as matrizes
-       return xScale(d[0]);
-     })
-     .attr("cy", function(d) {
-       return yScale(d[1]); // Y calculado com as matrizes
-     })
-     .attr("r", function(d) { return 10*d[2]; })
-    .style("fill", colors[3]) // mudar o fitness aqui 
-    .on("mouseover", function(d) {      
-       div.transition()
-       .duration(200)
-       .style("opacity", .9);
+      .data(data).enter().append("circle")
+      .attr("cx", function(d) {
+        //return xScale(d[0]); // X calculado com as matrizes
+        return xScale(d[0]);
+      })
+      .attr("cy", function(d) {
+        return yScale(d[1]); // Y calculado com as matrizes
+      })
+      .attr("r", function(d) { return 15*d[2]; })
+      .style("fill", function(d) {
+        if(max==d[2])
+          return colors[4]
+        else
+          return colors[3]
+      })
+      .on("mouseover", function(d) {      
+        if(!pause) return;
+        div.transition()
+          .duration(200)
+          .style("opacity", 1)
+          .style("background", "#FFFFFF")
   
-       div.html(d)
-       .style("left", d3.select(this).attr("cx") + "px")
-       .style("top", d3.select(this).attr("cy") -10  + "px");
-    })
+        div.html("<b>Fitness:<br>" + (d[2]+"").substr(0,4) + "</b>")
+          .style("left", d3.select(this).attr("cx") + "px")
+          .style("top", d3.select(this).attr("cy") -10  + "px")
+          .style("halign", "center")
+          .style("padding-left", "5px")
+          .style("border", "1px solid black")
+      })
       .on("mouseout", function(d) {       
-      div.transition()        
-      .duration(500)      
-      .style("opacity", 0);   
-    });
+        div.transition()
+          .duration(500)      
+          .style("opacity", 0);   
+      })
   
     return svg;
  }
@@ -212,6 +253,7 @@
       var num = idx-3+j;
       document.getElementById("color_tbox_" + j).innerHTML = ""+(num>=0?num:"-")
     }
+    document.getElementById("color_tbox_" + j).innerHTML = "<b>Best</b>"
   }
 </script>
 </div>
