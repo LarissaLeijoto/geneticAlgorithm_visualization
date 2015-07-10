@@ -154,3 +154,11 @@ Finally, increment the generation counter and trigger the transition:
   }                                                                              
   run();   
 ```
+
+
+### Outcome
+This resulting screen should look something like the following image;
+![alt text](https://raw.githubusercontent.com/LarissaLeijoto/visualization-tp/master/screen.png "Result screen")
+
+
+DONE!!!
