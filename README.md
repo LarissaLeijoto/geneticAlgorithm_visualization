@@ -1,3 +1,7 @@
+# Four Shades of Blue
+![alt text](https://raw.githubusercontent.com/LarissaLeijoto/visualization-tp/master/logo.png "Bloo")
+
+
 This tutorial explains how to use D3.js to visualize genetic algorithms. In
 particular, we are interested in a dynamic visualization of the search space,
 where each individual in a given generation is represented solely by its X and Y
