@@ -1,4 +1,4 @@
-# Four Shades of Blue <img src="https://raw.githubusercontent.com/LarissaLeijoto/visualization-tp/master/logo.png" width="80">
+# Four Shades of Blue <img src="https://raw.githubusercontent.com/LarissaLeijoto/visualization-tp/master/logo.png" width="100">
 
 
 This tutorial explains how to use D3.js to visualize genetic algorithms. In
