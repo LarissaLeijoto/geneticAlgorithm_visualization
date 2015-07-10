@@ -6,6 +6,30 @@
   <script type="text/javascript" src="http://d3js.org/d3.v3.js"></script>
   <!--script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script-->
 </head>
+<style>
+
+body {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.x.axis path {
+  display: none;
+}
+
+.line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
+
+</style>
 <body>
 <style>
   body { font: 12px Arial;}
@@ -34,7 +58,7 @@
 
 <table>
 <tr>
-  <td><svg></svg></td>
+  <td id="svg_td"><svg></svg></td>
   <td style="vertical-align: top; padding-left: 20px;">
     <table style="padding: 20px 20px 20px 0px;">
     <tr>
@@ -76,6 +100,9 @@
     <tr><td><button type="button" id="change" class="ctrlbutton" onclick="updateData(); i=0; redrawColorCaption(i); if(pause) clean();">
       <b>Change Experiment</b></button> 
     </td></tr>
+    <tr><td><button type="button" id="toggle" class="ctrlbutton" onclick="togglePlot(); i=0; redrawColorCaption(i); if(pause) clean();">
+      <b>See Line Plot</b></button> 
+    </td></tr>
     </td>
     </tr>
     </table>
@@ -84,180 +111,8 @@
 </tr>
 </table>
 
-<script type="text/javascript">
-  // set the stage
-  
-  var width = 960;
-  var height = 480;
-  var legendSpacing = 4;
-  var legendElementWidth = 50;
+<script type="text/javascript" src="plots.js" charset="utf-8"></script>
 
-  var margin = {top: 20, right: 40, bottom: 50, left: 50},
-    w = width - margin.left - margin.right,
-    h = height - margin.top - margin.bottom;
-    colors = ['#ADD8E6','#1E90FF','#0000FF','#191970', '#EE0000'];
-
-  drawMenu();
-  
-  var i=0;
-  var pause=false;
-  var dataDir = 'data1'
-
-  var _step=5;
-
-  var svg=null;
-  function next() {
-    var name = dataDir + '/gen_' + i + '.json';
-    try {
-      // Read the json data:
-      d3.json(name, function(error, data) {
-        if(pause) return;
-        if(svg) {
-          d3.selectAll('circle').filter(function(d, i) { 
-            return d[3] == 0;
-          }).remove()
-
-          d3.selectAll('circle').filter(function(d, i) {
-            return d[3]--;
-          }).style("fill", function(d) {
-              return colors[d[3]]
-          ;})
-        }
-
-        svg = draw(data)
-
-        // Update the number of the
-        // generations diplayed on the legend.
-        redrawColorCaption(i)
-
-        setTimeout(next, 80);
-      });
-      i += _step
-    } catch(e) {
-      i=0;
-      pause=true;
-    }
-  }
-  next();
-
-  function togglePlay() {
-    if(pause) {
-      pause=false;
-      next();
-      document.getElementById("pause").innerHTML = "<b>Pause</b>"
-    } else {
-      pause=true;
-      document.getElementById("pause").innerHTML = "<b>Play</b>"
-    }
-  }
-
-  function clean() {
-    d3.selectAll('circle').remove()
-  }
-
-  function updateData() {
-    var val = document.getElementById("experimento").value;
-    dataDir = 'data' + val;
-  }
-
-  function draw(data) {
-
-    data.sort(function(a, b) { return a[2]-b[2] })
-    max = data[data.length-1][2]
-
-    for (var j = 0; j < data.length; j++)
-      data[j].push(3);
-
-    var div = d3.select("body").append("div")   
-      .attr("class", "tooltip")               
-      .style("opacity", 0);
-
-    var xScale = d3.scale.linear()
-      .domain([0, 1])
-      .range([0, width]);
-  
-    var yScale = d3.scale.linear()
-      .domain([0, 1])
-      .range([height, 0]);
-  
-    var colorScale = d3.scale.quantile()
-      .domain([0, 1, 2, 3])
-      .range(colors);
-  
-    //Create SVG element
-    var svg = d3.select("svg")
-      .attr("width", width + margin.left + margin.right)
-      .attr("height", height + margin.top + margin.bottom)
-      .style("border", "2px solid black")
-      .append("g")
-      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-  
-    ///*
-    svg.selectAll("circle")
-      .data(data).enter().append("circle")
-      .attr("cx", function(d) {
-        //return xScale(d[0]); // X calculado com as matrizes
-        return xScale(d[0]);
-      })
-      .attr("cy", function(d) {
-        return yScale(d[1]); // Y calculado com as matrizes
-      })
-      .attr("r", function(d) { return 15*d[2]; })
-      .style("fill", function(d) {
-        if(max==d[2])
-          return colors[4]
-        else
-          return colors[3]
-      })
-      .on("mouseover", function(d) {      
-        if(!pause) return;
-        div.transition()
-          .duration(200)
-          .style("opacity", 1)
-          .style("background", "#FFFFFF")
-  
-        div.html("<b>Fitness:<br>" + (d[2]+"").substr(0,4) + "</b>")
-          .style("left", d3.select(this).attr("cx") + "px")
-          .style("top", d3.select(this).attr("cy") -10  + "px")
-          .style("halign", "center")
-          .style("padding-left", "5px")
-          .style("border", "1px solid black")
-      })
-      .on("mouseout", function(d) {       
-        div.transition()
-          .duration(500)      
-          .style("opacity", 0);   
-      })
-  
-    return svg;
- }
-
-  function drawMenu() {
-    d3.select("#color_scale").append("div").selectAll("div")
-      .data(colors)
-      .enter()
-      .append("div")
-      .style("background", function(d){return d;})
-      .style("height", "30px")
-      .style("width", "30px")
-
-    d3.select("#color_caption").append("div").selectAll("div")
-      .data(colors)
-      .enter()
-      .append("div")
-      .attr("id", function(d, i){return ("color_tbox_"+i);})
-      .style("line-height", "30px")
-      .style("width", "30px")
-  }
-
-  function redrawColorCaption(idx) {
-    for (var j = 0; j < 4; j++) {
-      var num = idx-3+j;
-      document.getElementById("color_tbox_" + j).innerHTML = ""+(num>=0?num:"-")
-    }
-    document.getElementById("color_tbox_" + j).innerHTML = "<b>Best</b>"
-  }
-</script>
 </div>
 </body>
 </html>
