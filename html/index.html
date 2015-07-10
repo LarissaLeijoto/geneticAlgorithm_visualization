@@ -61,10 +61,10 @@
       </td>
     </tr> </table>
     <table>
-    <tr>
-    <td style="padding-top: 20px;">
+    <tr> <td style="padding-top: 20px;">
     <b>Experiments:</b>
-    <select multiple id="experimento" name="Experiments" size="5"
+    </td> </tr>
+    <tr><td><select multiple id="experimento" name="Experiments" size="5"
       style="height: 120px; width: 160px; padding: 10px 10px 10px 10px;">
       <option value="1">Experiment 1</option>
       <option value="2">Experiment 2</option>
@@ -72,8 +72,10 @@
       <option value="4">Experiment 4</option>
       <option value="5">Experiment 5</option>
     </select>
-    <button type="button" id="change" class="ctrlbutton" onclick="updateData(); i=0; redrawColorCaption(i); if(pause) clean();">
+    </td></tr>
+    <tr><td><button type="button" id="change" class="ctrlbutton" onclick="updateData(); i=0; redrawColorCaption(i); if(pause) clean();">
       <b>Change Experiment</b></button> 
+    </td></tr>
     </td>
     </tr>
     </table>
